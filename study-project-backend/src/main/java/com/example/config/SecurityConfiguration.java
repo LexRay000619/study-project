@@ -13,6 +13,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
@@ -41,13 +44,31 @@ public class SecurityConfiguration {
                 .and()
                 .logout()
                 .logoutUrl("/api/auth/logout")
+                .logoutSuccessHandler(this::onAuthenticationSuccess)
                 .and()
                 .csrf()
                 .disable()
+                .cors()
+                .configurationSource(this.configurationSource())
+                .and()
                 .exceptionHandling()
                 .authenticationEntryPoint(this::onAuthenticationFailure)
                 .and()
                 .build();
+    }
+
+    private CorsConfigurationSource configurationSource() {
+        CorsConfiguration cors = new CorsConfiguration();
+        // 仅仅在测试时可以这么使用(省事),不可在真实部署上线的时候这么设置(不安全),最终应该设置为只允许自己的前端服务器访问
+        cors.addAllowedOriginPattern("*");
+        cors.setAllowCredentials(true);
+        cors.addAllowedHeader("*");
+        cors.addAllowedMethod("*");
+        cors.addExposedHeader("*");
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", cors);
+        return source;
+
     }
 
     @Bean
@@ -65,7 +86,11 @@ public class SecurityConfiguration {
 
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
         response.setCharacterEncoding("utf-8");
-        response.getWriter().write(JSONObject.toJSONString(RestBean.success("登录成功!")));
+        if(request.getRequestURI().endsWith("/login")) {
+            response.getWriter().write(JSONObject.toJSONString(RestBean.success("登录成功!")));
+        }else if(request.getRequestURI().endsWith("/logout")){
+            response.getWriter().write(JSONObject.toJSONString(RestBean.success("退出登录成功!")));
+        }
     }
 
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException {
