@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpSession;
 import javax.validation.constraints.Pattern;
 
 /**
@@ -22,9 +23,10 @@ public class AuthorizeController {
     @Resource
     AuthorizeService service;
 
-    @PostMapping("/validate-email")
-    public RestBean<String> validateEmail(@Pattern(regexp = EMAIL_REGEX) @RequestParam("email") String email) {
-        if (service.sendValidateEmail(email)) {
+    @PostMapping("/valid-email")
+    public RestBean<String> validateEmail(@Pattern(regexp = EMAIL_REGEX) @RequestParam("email") String email,
+                                          HttpSession session) {
+        if (service.sendValidateEmail(email, session.getId())) {
             return RestBean.success("邮件已发送，请注意查收");
         } else {
             return RestBean.failure(400, "邮件发送失败，请联系管理员");

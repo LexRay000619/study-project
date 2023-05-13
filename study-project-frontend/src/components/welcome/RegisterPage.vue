@@ -71,10 +71,10 @@ const register = () => {
     })
 }
 
-const validateEmail = ()=>{
-    post('/api/auth/validate-email',{
+const validateEmail = () => {
+    post('/api/auth/valid-email', {
         email: form.email
-    },(message)=>{
+    }, (message) => {
         ElMessage.success(message)
     })
 }
@@ -138,7 +138,8 @@ const validateEmail = ()=>{
                             </el-input>
                         </el-col>
                         <el-col :span="7">
-                            <el-button type="success" style="text-align: right" :disabled="!isEmailValid" @click="validateEmail">获取验证码
+                            <el-button type="success" style="text-align: right" :disabled="!isEmailValid"
+                                       @click="validateEmail">获取验证码
                             </el-button>
                         </el-col>
                     </el-row>
